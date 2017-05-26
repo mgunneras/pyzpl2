@@ -168,6 +168,29 @@ class Label:
                                                    "characters and spaces"
             self.code += '"%s"' % name
 
+    def set_barcode_field_defaults(self, module_width=2, bar_width_ratio=3.0,
+            bar_code_height=5):
+        """
+        module_width and bar_width_ratio are set in dot size.
+        bar_code_height is set in mm.
+        """
+        assert module_width in range(1, 11), "module width should be 1 - 10"
+        assert bar_width_ratio > 2.0 and bar_width_ratio < 3.0, "invaild ratio"
+        self.code += "^BY%i,%.1f,%i" % (module_width, bar_width_ratio,
+                bar_code_height*self.dpmm)
+
+    def write_barcode_code39(self, value, orientation='N', mod43='N', height=5,
+            interpretation_below='Y', interpretation_above='N'):
+        height_dots = height*self.dpmm
+        assert orientation in "NRIB", "invalid orientation"
+        assert mod43 in "YN", "invalid mod43 (Y/N)"
+        assert interpretation_above in "YN", "invalid interpretation_above"
+        assert interpretation_below in "YN", "invalid interpretation_below"
+        assert height_dots > 1 and height_dots < 32000, "invalid height"
+        self.code += "^B3%c,%c,%i,%c,%c" % (orientation, mod43, height_dots,
+                interpretation_above, interpretation_below)
+        self.code += "^FD%s" % value
+
     def dumpZPL(self):
         return self.code+"^XZ"
 
@@ -192,20 +215,25 @@ if __name__ == "__main__":
     l = Label(30,60)
     height = 0
     l.origin(0,0)
-    l.write_text("Problem?", char_height=10, char_width=8, line_width=60, justification='C')
+    l.write_text("Problem?", char_height=4, char_width=3, line_width=60, justification='C', font="0")
     l.endorigin()
 
-
-    height += 13
-    image_width = 5
+    height += 5
+    image_width = 8
     l.origin((l.width-image_width)/2, height)
     image_height = l.write_graphic(Image.open('trollface-large.png'), image_width)
     l.endorigin()
 
-    l.origin(0, height+image_height)
+    l.origin(0, height+image_height+2)
     l.write_text('Happy Troloween!', char_height=5, char_width=4, line_width=60,
                  justification='C')
     l.endorigin()
+
+
+    l.origin(20, height+image_height+10)
+    l.write_barcode_code39('ABC123', interpretation_above='Y')
+    l.endorigin()
+
 
     print l.dumpZPL()
     l.preview()
