@@ -175,7 +175,7 @@ class Label:
         bar_code_height is set in mm.
         """
         assert module_width in range(1, 11), "module width should be 1 - 10"
-        assert bar_width_ratio > 2.0 and bar_width_ratio < 3.0, "invaild ratio"
+        assert bar_width_ratio > 2.0 and bar_width_ratio <= 3.0, "invaild ratio"
         self.code += "^BY%i,%.1f,%i" % (module_width, bar_width_ratio,
                 bar_code_height*self.dpmm)
 
